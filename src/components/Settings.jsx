@@ -68,27 +68,27 @@ const Settings = () => {
     try {
       switch (value) {
         case 'hazard':
-          const hazardResponse = await axios.get('http://192.168.0.147:8000/api/hazard/');
+          const hazardResponse = await axios.get('http://142.93.214.65:8000/api/hazard/');
           setHazardData(hazardResponse.data.data);
           break;
         case 'location':
-          const locationResponse = await axios.get('http://192.168.0.147:8000/api/location/');
+          const locationResponse = await axios.get('http://142.93.214.65:8000/api/location/');
           setLocationData(locationResponse.data.data);
           break;
         case 'plant':
-          const plantResponse = await axios.get('http://192.168.0.147:8000/api/plant/');
+          const plantResponse = await axios.get('http://142.93.214.65:8000/api/plant/');
           setPlantData(plantResponse.data.data);
           break;
         case 'priority':
-          const priorityResponse = await axios.get('http://192.168.0.147:8000/api/priority/');
+          const priorityResponse = await axios.get('http://142.93.214.65:8000/api/priority/');
           setPriorityData(priorityResponse.data.data);
           break;
         case 'status':
-          const statusResponse = await axios.get('http://192.168.0.147:8000/api/status/');
+          const statusResponse = await axios.get('http://142.93.214.65:8000/api/status/');
           setStatusData(statusResponse.data.data);
           break;
         case 'total-people-count':
-          const peopleCountResponse = await axios.get('http://192.168.0.147:8000/api/total_people_count/');
+          const peopleCountResponse = await axios.get('http://142.93.214.65:8000/api/total_people_count/');
           setPeopleCountData(peopleCountResponse.data.data);
           break;
       }
@@ -149,19 +149,19 @@ const Settings = () => {
 
       switch (value) {
         case 'hazard':
-          endpoint = 'http://192.168.0.147:8000/api/hazard/';
+          endpoint = 'http://142.93.214.65:8000/api/hazard/';
           payload = { hazard_name: newItem.hazard_name, is_active: newItem.is_active };
           break;
         case 'location':
-          endpoint = 'http://192.168.0.147:8000/api/location/';
+          endpoint = 'http://142.93.214.65:8000/api/location/';
           payload = { location_name: newItem.location_name, is_active: newItem.is_active };
           break;
         case 'plant':
-          endpoint = 'http://192.168.0.147:8000/api/plant/';
+          endpoint = 'http://142.93.214.65:8000/api/plant/';
           payload = { plant_name: newItem.plant_name, is_active: newItem.is_active };
           break;
         case 'priority':
-          endpoint = 'http://192.168.0.147:8000/api/priority/';
+          endpoint = 'http://142.93.214.65:8000/api/priority/';
           payload = {
             priority_name: newItem.priority_name,
             color_code: newItem.color_code,
@@ -169,7 +169,7 @@ const Settings = () => {
           };
           break;
         case 'status':
-          endpoint = 'http://192.168.0.147:8000/api/status/';
+          endpoint = 'http://142.93.214.65:8000/api/status/';
           payload = {
             status_name: newItem.status_name,
             color_code: newItem.color_code,
@@ -193,19 +193,19 @@ const Settings = () => {
       let endpoint = '';
       switch (value) {
         case 'hazard':
-          endpoint = `http://192.168.0.147:8000/api/hazard/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/hazard/${id}/`;
           break;
         case 'location':
-          endpoint = `http://192.168.0.147:8000/api/location/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/location/${id}/`;
           break;
         case 'plant':
-          endpoint = `http://192.168.0.147:8000/api/plant/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/plant/${id}/`;
           break;
         case 'priority':
-          endpoint = `http://192.168.0.147:8000/api/priority/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/priority/${id}/`;
           break;
         case 'status':
-          endpoint = `http://192.168.0.147:8000/api/status/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/status/${id}/`;
           break;
       }
 
@@ -223,19 +223,19 @@ const Settings = () => {
       let endpoint = '';
       switch (value) {
         case 'hazard':
-          endpoint = `http://192.168.0.147:8000/api/hazard/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/hazard/${id}/`;
           break;
         case 'location':
-          endpoint = `http://192.168.0.147:8000/api/location/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/location/${id}/`;
           break;
         case 'plant':
-          endpoint = `http://192.168.0.147:8000/api/plant/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/plant/${id}/`;
           break;
         case 'priority':
-          endpoint = `http://192.168.0.147:8000/api/priority/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/priority/${id}/`;
           break;
         case 'status':
-          endpoint = `http://192.168.0.147:8000/api/status/${id}/`;
+          endpoint = `http://142.93.214.65:8000/api/status/${id}/`;
           break;
       }
 

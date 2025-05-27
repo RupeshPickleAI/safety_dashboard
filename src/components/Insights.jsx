@@ -47,24 +47,17 @@ const Insights = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedFacility, setSelectedFacility] = useState('');
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const facilities = [
-    'All Facilities',
-    'Facility 1',
-    'Facility 2',
-    'Facility 3'
-  ];
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [selectedFacility, selectedDate]);
+  }, [startDate, endDate]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://192.168.0.147:8000/api/dashboard/');
+      const response = await axios.get('http://142.93.214.65:8000/api/dashboard/');
       console.log('Dashboard API Response:', response.data);
       setDashboardData(response.data);
       setError(null);
@@ -122,12 +115,12 @@ const Insights = () => {
     }
   };
 
-  const handleFacilityChange = (event) => {
-    setSelectedFacility(event.target.value);
+  const handleStartDateChange = (newDate) => {
+    setStartDate(newDate);
   };
 
-  const handleDateChange = (newDate) => {
-    setSelectedDate(newDate);
+  const handleEndDateChange = (newDate) => {
+    setEndDate(newDate);
   };
 
   const chartData = processChartData();
@@ -143,53 +136,63 @@ const Insights = () => {
             <h1 className="text-xl font-semibold">Insights</h1>
           </div>
 
-          {/* Right side with filters */}
+          {/* Right side with date range pickers */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {/* Facility Dropdown */}
-            <FormControl size="small" className="w-full sm:w-[200px] bg-white rounded-md">
-              <InputLabel>Facility</InputLabel>
-              <Select
-                value={selectedFacility}
-                label="Facility"
-                onChange={handleFacilityChange}
-                className="bg-white"
-              >
-                {facilities.map((facility) => (
-                  <MenuItem key={facility} value={facility}>
-                    {facility}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Date Picker */}
             <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="Select Date"
-                value={selectedDate}
-                onChange={handleDateChange}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    className: "w-full sm:w-[200px] bg-white rounded-md",
-                    InputProps: {
-                      startAdornment: <CalendarMonth className="text-gray-400 mr-2" />,
+              <div className="flex flex-col sm:flex-row gap-4">
+                <DatePicker
+                  label="From Date"
+                  value={startDate}
+                  onChange={handleStartDateChange}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      className: "w-full sm:w-[200px] bg-white rounded-md",
+                      InputProps: {
+                        startAdornment: <CalendarMonth className="text-gray-400 mr-2" />,
+                      },
                     },
-                  },
-                }}
-              />
+                  }}
+                />
+                <DatePicker
+                  label="To Date"
+                  value={endDate}
+                  onChange={handleEndDateChange}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      className: "w-full sm:w-[200px] bg-white rounded-md",
+                      InputProps: {
+                        startAdornment: <CalendarMonth className="text-gray-400 mr-2" />,
+                      },
+                    },
+                  }}
+                />
+              </div>
             </LocalizationProvider>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Compliance Card */}
-        <div className="bg-gradient-to-br from-green-300 to-green-200 rounded-lg shadow-md p-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {/* Personal Compliance Card */}
+        <div className={`rounded-lg shadow-md p-6 ${
+          compliancePercentage >= 70 
+            ? 'bg-gradient-to-br from-green-300 to-green-200' 
+            : compliancePercentage >= 35 
+              ? 'bg-gradient-to-br from-yellow-300 to-yellow-200'
+              : 'bg-gradient-to-br from-red-300 to-red-200'
+        }`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-700">Compliance</h3>
-            <CheckCircleIcon className="text-green-500" />
+            <h3 className="text-lg font-semibold text-gray-700">Personal Compliance</h3>
+            <CheckCircleIcon className={`${
+              compliancePercentage >= 70 
+                ? 'text-green-500' 
+                : compliancePercentage >= 35 
+                  ? 'text-yellow-500'
+                  : 'text-red-500'
+            }`} />
           </div>
           <div className="flex items-baseline gap-2">
             <h3 className="text-3xl font-bold text-gray-800">{dashboardData.remaining}</h3>
@@ -198,7 +201,52 @@ const Insights = () => {
           <div className="mt-2">
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-green-700 h-2 rounded-full" 
+                className={`h-2 rounded-full ${
+                  compliancePercentage >= 70 
+                    ? 'bg-green-700' 
+                    : compliancePercentage >= 35 
+                      ? 'bg-yellow-600'
+                      : 'bg-red-700'
+                }`}
+                style={{ width: `${compliancePercentage}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">{compliancePercentage}% Compliant</p>
+          </div>
+        </div>
+
+        {/* Workspace Compliance Card */}
+        <div className={`rounded-lg shadow-md p-6 ${
+          compliancePercentage >= 70 
+            ? 'bg-gradient-to-br from-green-300 to-green-200' 
+            : compliancePercentage >= 35 
+              ? 'bg-gradient-to-br from-yellow-300 to-yellow-200'
+              : 'bg-gradient-to-br from-red-300 to-red-200'
+        }`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-700">Workspace Compliance</h3>
+            <CheckCircleIcon className={`${
+              compliancePercentage >= 70 
+                ? 'text-green-500' 
+                : compliancePercentage >= 35 
+                  ? 'text-yellow-500'
+                  : 'text-red-500'
+            }`} />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-3xl font-bold text-gray-800">{dashboardData.remaining}</h3>
+            <span className="text-gray-500">/ {dashboardData.total_people}</span>
+          </div>
+          <div className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full ${
+                  compliancePercentage >= 70 
+                    ? 'bg-green-700' 
+                    : compliancePercentage >= 35 
+                      ? 'bg-yellow-600'
+                      : 'bg-red-700'
+                }`}
                 style={{ width: `${compliancePercentage}%` }}
               ></div>
             </div>
@@ -216,14 +264,32 @@ const Insights = () => {
           <p className="text-sm text-gray-600 mt-2">Current active hazards</p>
         </div>
 
-        {/* Remaining Card */}
-        <div className="bg-gradient-to-br from-orange-200 to-orange-200 rounded-lg shadow-md p-6">
+        {/* Compliance Rate Card */}
+        <div className={`rounded-lg shadow-md p-6 ${
+          dashboardData.remaining_percentage >= 70 
+            ? 'bg-gradient-to-br from-green-300 to-green-200' 
+            : dashboardData.remaining_percentage >= 35 
+              ? 'bg-gradient-to-br from-yellow-300 to-yellow-200'
+              : 'bg-gradient-to-br from-red-300 to-red-200'
+        }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-700">Compliance Rate</h3>
-            <ErrorIcon className="text-orange-500" />
+            <ErrorIcon className={`${
+              dashboardData.remaining_percentage >= 70 
+                ? 'text-green-500' 
+                : dashboardData.remaining_percentage >= 35 
+                  ? 'text-yellow-500'
+                  : 'text-red-500'
+            }`} />
           </div>
-          <h3 className="text-3xl font-bold text-gray-800">{dashboardData.remaining_percentage}</h3>
-          <p className="text-sm text-gray-600 mt-2">Above Target</p>
+          <h3 className="text-3xl font-bold text-gray-800">{dashboardData.remaining_percentage}%</h3>
+          <p className="text-sm text-gray-600 mt-2">
+            {dashboardData.remaining_percentage >= 70 
+              ? 'Excellent' 
+              : dashboardData.remaining_percentage >= 35 
+                ? 'Needs Improvement'
+                : 'Critical'}
+          </p>
         </div>
       </div>
 

@@ -36,6 +36,7 @@ const Reports = () => {
   const [selectedHazard, setSelectedHazard] = useState('');
   console.log(selectedHazard)
   const [selectedLocation, setSelectedLocation] = useState('');
+  console.log(selectedLocation)
   const [selectedPriority, setSelectedPriority] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
@@ -55,37 +56,40 @@ const Reports = () => {
   const [statuses, setStatuses] = useState([]);
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
+  const [updateLoading, setUpdateLoading] = useState({});
+const [queryParams, setQueryParams] = useState({});
+console.log(queryParams)
 
   // Fetch all filter options
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
         // Fetch hazards
-        const hazardsResponse = await axios.get('http://192.168.0.147:8000/api/hazard/');
+        const hazardsResponse = await axios.get('http://142.93.214.65:8000/api/hazard/');
         if (hazardsResponse.data && hazardsResponse.data.data) {
           setHazards(hazardsResponse.data.data);
         }
 
         // Fetch locations
-        const locationsResponse = await axios.get('http://192.168.0.147:8000/api/location/');
+        const locationsResponse = await axios.get('http://142.93.214.65:8000/api/location/');
         if (locationsResponse.data && locationsResponse.data.data) {
           setLocations(locationsResponse.data.data);
         }
 
         // Fetch priorities
-        const prioritiesResponse = await axios.get('http://192.168.0.147:8000/api/priority/');
+        const prioritiesResponse = await axios.get('http://142.93.214.65:8000/api/priority/');
         if (prioritiesResponse.data && prioritiesResponse.data.data) {
           setPriorities(prioritiesResponse.data.data);
         }
 
         // Fetch statuses
-        const statusesResponse = await axios.get('http://192.168.0.147:8000/api/status/');
+        const statusesResponse = await axios.get('http://142.93.214.65:8000/api/status/');
         if (statusesResponse.data && statusesResponse.data.data) {
           setStatuses(statusesResponse.data.data);
         }
 
         // Fetch initial reports
-        const reportsResponse = await axios.get('http://192.168.0.147:8000/api/report/');
+        const reportsResponse = await axios.get('http://142.93.214.65:8000/api/report/');
         if (reportsResponse.data && reportsResponse.data.data) {
           setReports(reportsResponse.data.data);
           setFilteredReports(reportsResponse.data.data.slice(0, itemsPerPage));
@@ -112,9 +116,7 @@ const Reports = () => {
         date: selectedDate ? selectedDate.toISOString().split('T')[0] : ''
       };
 
-      console.log('Filter Parameters:', filterParams);
-
-      const response = await axios.get('http://192.168.0.147:8000/api/report/', {
+      const response = await axios.get('http://142.93.214.65:8000/api/report/', {
         params: filterParams
       });
 
@@ -123,7 +125,7 @@ const Reports = () => {
         setFilteredReports(filteredData.slice(0, itemsPerPage));
         const total = Math.ceil(filteredData.length / itemsPerPage);
         setTotalPages(total);
-        setPage(1); // Reset to first page when applying new filters
+        setPage(1);
       }
       setIsFilterDialogOpen(false);
     } catch (err) {
@@ -194,6 +196,58 @@ const Reports = () => {
     }
   };
 
+  const handleStatusChange = async (reportId, newStatusId) => {
+    try {
+      setUpdateLoading(prev => ({ ...prev, [reportId]: true }));
+      
+      // Make PUT request to update status
+      const response = await axios.put(`http://142.93.214.65:8000/api/report/${reportId}/`, {
+        status: newStatusId,
+        is_active: true,
+        compliance_count: 1
+      });
+
+      if (response.data) {
+        // Update the local state with the new status
+        // setReports(prevReports => 
+        //   prevReports.map(report => 
+        //     report.id === reportId 
+        //       ? { 
+        //           ...report, 
+        //           status: newStatusId,
+        //           status_name: statuses.find(s => s.status === newStatusId)?.status_name || report.status_name,
+        //           status_color: statuses.find(s => s.status === newStatusId)?.status_color || report.status_color
+        //         }
+        //       : report
+        //   )
+        // );
+        // setFilteredReports(prevReports => 
+        //   prevReports.map(report => 
+        //     report.id === reportId 
+        //       ? { 
+        //           ...report, 
+        //           status: newStatusId,
+        //           status_name: statuses.find(s => s.status === newStatusId)?.status_name || report.status_name,
+        //           status_color: statuses.find(s => s.status === newStatusId)?.status_color || report.status_color
+        //         }
+        //       : report
+        //   )
+        // );
+         // Fetch initial reports
+        const reportsResponse = await axios.get('http://142.93.214.65:8000/api/report/');
+        if (reportsResponse.data && reportsResponse.data.data) {
+          setReports(reportsResponse.data.data);
+          setFilteredReports(reportsResponse.data.data.slice(0, itemsPerPage));
+      }
+    }
+    } catch (err) {
+      console.error('Error updating status:', err);
+      setError('Failed to update status');
+    } finally {
+      setUpdateLoading(prev => ({ ...prev, [reportId]: false }));
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6">
       {/* Header Card */}
@@ -217,184 +271,227 @@ const Reports = () => {
           </div>
         </div>
       </div>
+<Dialog
+  open={isFilterDialogOpen}
+  onClose={() => setIsFilterDialogOpen(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle className="flex justify-between items-center">
+    <span>Filter Reports</span>
+    <IconButton onClick={() => setIsFilterDialogOpen(false)}>
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
 
-      {/* Filter Dialog */}
-      <Dialog
-        open={isFilterDialogOpen}
-        onClose={() => setIsFilterDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
+  <DialogContent>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      {/* Hazard Filter */}
+      <FormControl fullWidth size="small">
+        <InputLabel>Hazard Type</InputLabel>
+        <Select
+          value={selectedHazard?.id || ''}
+          label="Hazard Type"
+          onChange={(e) => {
+            const selectedValue = e.target.value;
+            const selectedHazardObj = hazards.find(h => String(h.id) === String(selectedValue));
+            setSelectedHazard({
+              id: selectedHazardObj?.id || '',
+              name: selectedHazardObj?.hazard_name || ''
+            });
+            setQueryParams(prev => ({
+              ...prev,
+              hazard: selectedHazardObj?.id || undefined
+            }));
+          }}
+        >
+          <MenuItem value=""><em>None</em></MenuItem>
+          {hazards.map(h => (
+            <MenuItem key={h.id} value={h.id}>{h.hazard_name}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Location Filter */}
+      <FormControl fullWidth size="small">
+        <InputLabel>Location</InputLabel>
+        <Select
+          value={selectedLocation?.id}
+          label="Location"
+          onChange={(e) => {
+           console.log(locations)
+            const selectedValue = e.target.value;
+            console.log(selectedValue)
+              const selectedLocationObj = locations.find(h => String(h.id) === String(selectedValue));
+            setSelectedLocation({
+              id: selectedLocationObj?.id || '',
+              name: selectedLocationObj?.location_name || ''
+            });
+            setQueryParams(prev => ({
+              ...prev,
+              location: selectedLocationObj?.id || undefined
+            }));
+          }}
+        >
+          <MenuItem value=""><em>None</em></MenuItem>
+          {locations.map(loc => (
+            <MenuItem key={loc.id} value={loc.id}>
+              {loc.location_name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Priority Filter */}
+      <FormControl fullWidth size="small">
+        <InputLabel>Priority</InputLabel>
+        <Select
+          value={selectedPriority?.id}
+          label="Priority"
+               onChange={(e) => {
+           console.log(locations)
+            const selectedValue = e.target.value;
+            console.log(selectedValue)
+              const selectedLocationObj = priorities.find(h => String(h.id) === String(selectedValue));
+            setSelectedPriority({
+              id: selectedLocationObj?.id || '',
+              name: selectedLocationObj?.priority_name || ''
+            });
+            setQueryParams(prev => ({
+              ...prev,
+              priority: selectedLocationObj?.id || undefined
+            }));
+          }}
+           
+        >
+          <MenuItem value=""><em>None</em></MenuItem>
+          {priorities.map(p => (
+            <MenuItem key={p.id} value={p.id}>
+              {p.priority_name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Status Filter */}
+      <FormControl fullWidth size="small">
+        <InputLabel>Status</InputLabel>
+        <Select
+          value={selectedStatus?.id}
+          label="Status"
+             onChange={(e) => {
+           console.log(locations)
+            const selectedValue = e.target.value;
+            console.log(selectedValue)
+              const selectedLocationObj = statuses.find(h => String(h.id) === String(selectedValue));
+            setSelectedStatus({
+              id: selectedLocationObj?.id || '',
+              name: selectedLocationObj?.status_name || ''
+            });
+            setQueryParams(prev => ({
+              ...prev,
+              status: selectedLocationObj?.id || undefined
+            }));
+          }}
+      
+        >
+          <MenuItem value=""><em>None</em></MenuItem>
+          {statuses.map(s => (
+            <MenuItem key={s.id} value={s.id}>
+              {s.status_name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Date Filter */}
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+  <DatePicker
+    label="Date"
+    value={selectedDate}
+    onChange={(newValue) => {
+      setSelectedDate(newValue);
+      const formatted = newValue
+        ? newValue.toISOString().split('T')[0]  // YYYY-MM-DD format
+        : '';
+      setQueryParams(prev => ({ ...prev, uploaded_at: formatted || undefined }));
+    }}
+    renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+  />
+</LocalizationProvider>
+
+    </div>
+
+    {/* Actions */}
+    <div className="flex justify-end gap-4 p-4">
+      <Button
+        onClick={() => {
+          setSelectedHazard({ id: '', name: '' });
+          setSelectedLocation('');
+          setSelectedPriority('');
+          setSelectedStatus('');
+          setSelectedDate(null);
+          setQueryParams({ page_number: 1, data_per_page: 10 });
+        }}
+        variant="outlined"
       >
-        <DialogTitle className="flex justify-between items-center">
-          <span>Filter Reports</span>
-          <IconButton onClick={() => setIsFilterDialogOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-            {/* Hazard Type Filter */}
-            <FormControl fullWidth size="small">
-              <InputLabel>Hazard Type</InputLabel>
-              <Select
-                value={selectedHazard?.hazard_name || ''}
-                label="Hazard Type"
-                // onChange={(e) => {
-                //   const selectedValue = e.target.value;
-                //   const selectedHazard = hazards.find(h => h.hazard == selectedValue);
-                //   console.log('Selected Hazard:', {
-                //     id: selectedHazard?.hazard || '',
-                //     name: selectedHazard?.hazard_name || ''
-                //   });
-                //   setSelectedHazard({
-                //     id: selectedHazard?.hazard || '',
-                //     name: selectedHazard?.hazard_name || ''
-                //   });
-                // }}
-              onChange={(e) => {
-                console.log(e)
-  const selectedValue = e.target.value;
-  console.log('Selected value:', selectedValue);
-  console.log('Hazards:', hazards);
+        Reset
+      </Button>
+      <Button
+  onClick={async () => {
+    const queryString = Object.entries(queryParams)
+      .filter(([_, val]) => val !== undefined && val !== '')
+      .map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
+      .join('&');
 
-  const selectedHazardObj = hazards.find(h => String(h.hazard_name) === String(selectedValue));
+    const fullURL = `http://142.93.214.65:8000/api/report/?${queryString}`;
+    console.log('Final Filter URL:', fullURL);
 
-  if (selectedHazardObj) {
-    console.log('Selected Hazard:', {
-      id: selectedHazardObj.id,
-      name: selectedHazardObj.hazard_name
-    });
+    try {
+      const reportsResponse = await axios.get(fullURL);
 
-    setSelectedHazard({
-      id: selectedHazardObj.hazard,
-      name: selectedHazardObj.hazard_name
-    });
-  } else {
-    console.warn('No hazard matched the selected value');
-    setSelectedHazard({ id: '', name: '' });
-  }
+      if (reportsResponse.data && reportsResponse.data.data) {
+        setReports(reportsResponse.data.data);
+        setFilteredReports(reportsResponse.data.data.slice(0, itemsPerPage));
+      }
+      setIsFilterDialogOpen(false);
+    } catch (error) {
+      console.error('Error fetching filtered reports:', error);
+      // Optionally, display an error notification here
+    }
+  }}
+  variant="contained"
+  color="primary"
+>
+  Apply Filters
+</Button>
 
+{/* 
+      <Button
+        onClick={() => {
+          const queryString = Object.entries(queryParams)
+            .filter(([_, val]) => val !== undefined && val !== '')
+            .map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
+            .join('&');
+            const fullURL = `http://142.93.214.65:8000/api/report/?${queryString}`;
+            console.log('Final Filter URL:', fullURL);
+              const reportsResponse =  axios.get(fullURL);
+        if (reportsResponse.data && reportsResponse.data.data) {
+          setReports(reportsResponse.data.data);
+          setFilteredReports(reportsResponse.data.data.slice(0, itemsPerPage));
+      }
+          setIsFilterDialogOpen(false);
+        }}
+        variant="contained"
+        color="primary"
+      >
+        Apply Filters
+      </Button> */}
+    </div>
+  </DialogContent>
+</Dialog>
 
-}}
-
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {hazards.map((hazard) => (
-                  <MenuItem key={hazard.hazard} value={hazard.hazard}>
-                    {hazard.hazard_name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Location Filter */}
-            <FormControl fullWidth size="small">
-              <InputLabel>Location</InputLabel>
-              <Select
-                value={selectedLocation}
-                label="Location"
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  const selectedLocation = locations.find(l => l.location === selectedValue);
-                  console.log('Selected Location:', {
-                    id: selectedLocation?.location || '',
-                    name: selectedLocation?.location_name || ''
-                  });
-                  setSelectedLocation(selectedValue);
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {locations.map((location) => (
-                  <MenuItem key={location.location} value={location.location}>
-                    {location.location_name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Priority Filter */}
-            <FormControl fullWidth size="small">
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={selectedPriority}
-                label="Priority"
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  const selectedPriority = priorities.find(p => p.priority === selectedValue);
-                  console.log('Selected Priority:', {
-                    id: selectedPriority?.priority || '',
-                    name: selectedPriority?.priority_name || ''
-                  });
-                  setSelectedPriority(selectedValue);
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {priorities.map((priority) => (
-                  <MenuItem key={priority.priority} value={priority.priority}>
-                    {priority.priority_name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Status Filter */}
-            <FormControl fullWidth size="small">
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={selectedStatus}
-                label="Status"
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  const selectedStatus = statuses.find(s => s.status === selectedValue);
-                  console.log('Selected Status:', {
-                    id: selectedStatus?.status || '',
-                    name: selectedStatus?.status_name || ''
-                  });
-                  setSelectedStatus(selectedValue);
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {statuses.map((status) => (
-                  <MenuItem key={status.status} value={status.status}>
-                    {status.status_name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Date Filter */}
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="Date"
-                value={selectedDate}
-                onChange={(newValue) => {
-                  console.log('Selected Date:', newValue ? newValue.toISOString().split('T')[0] : '');
-                  setSelectedDate(newValue);
-                }}
-                renderInput={(params) => <TextField {...params} fullWidth size="small" />}
-              />
-            </LocalizationProvider>
-          </div>
-
-          {/* Filter Actions */}
-          <div className="flex justify-end gap-4 p-4">
-            <Button onClick={handleResetFilters} variant="outlined">
-              Reset
-            </Button>
-            <Button onClick={handleFilter} variant="contained" color="primary">
-              Apply Filters
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+    
 
       {/* Content Section */}
       {loading ? (
@@ -438,9 +535,36 @@ const Reports = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span style={getStatusStyle(row.status_color)}>
-                        {row.status_name}
-                      </span>
+                      {updateLoading[row.id] ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <FormControl size="small" fullWidth>
+                          <Select
+                            value={row.status || 1} // Default to 1 (Resolved)
+                            onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                            sx={{
+                              color: row.status_color || '#008000', // Default to green for Resolved
+                              '& .MuiSelect-select': {
+                                color: row.status_color || '#008000',
+                              },
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: row.status_color || '#008000',
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: row.status_color || '#008000',
+                              },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: row.status_color || '#008000',
+                              }
+                            }}
+                            disabled={updateLoading[row.id]}
+                          >
+                            <MenuItem value={1} sx={{ color: '#008000' }}>Resolved</MenuItem>
+                            <MenuItem value={2} sx={{ color: '#0000FF' }}>In Progress</MenuItem>
+                            <MenuItem value={3} sx={{ color: '#FFA500' }}>Under Review</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
                     </TableCell>
                     <TableCell>{formatDate(row.uploaded_at)}</TableCell>
                     <TableCell>
