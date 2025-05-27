@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewInAr as ViewIcon } from '@mui/icons-material';
 import {
   FormControl,
@@ -12,53 +12,129 @@ import {
   Grid,
   Box,
   Pagination,
+  CircularProgress,
 } from '@mui/material';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
+import axios from 'axios';
 
 const AIScreenView = () => {
   const [selectedItem, setSelectedItem] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const imagesPerPage = 6;
+   const [safetyItems, setSafetyItems] = useState([]);
+  
+console.log(safetyItems)
+  // Fetch safety items (hazards) on component mount
+  const fetchSafetyItems = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No access token found. Please log in.');
+      }
 
-  const safetyItems = ['Safety Helmet', 'Safety Gloves', 'Safety Belt'];
+      const response = await axios.get('http://142.93.214.65:8000/api/hazard/', {
+       headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-  const safetyImages = {
-    'Safety Helmet': [
-      '/src/assets/helmet1.jpg',
-      '/src/assets/helmet2.jpg',
-      '/src/assets/gloves1.jpg',
-      '/src/assets/helmet2.jpg',
-      '/src/assets/helmet1.jpg',
-      '/src/assets/helmet1.jpg',
-    ],
-    'Safety Gloves': [
-      '/src/assets/hemlet3.jpg',
-      '/src/assets/gloves1.jpg',
-      '/src/assets/helmet2.jpg',
-      '/src/assets/gloves1.jpg',
-      '/src/assets/gloves2.jpg',
-      '/src/assets/helmet2.jpg',
-      '/src/assets/gloves1.jpg',
-      '/src/assets/helmet1.jpg',
-    ],
-    'Safety Belt': [
-      'https://cdn.openart.ai/stable_diffusion/349fe0a5186979771d2978d9e11540e4d531c263_2000x2000.webp',
-      '/src/assets/helmet2.jpg',
-      '/src/assets/gloves1.jpg',
-      '/src/assets/helmet1.jpg',
-      '/src/assets/helmet2.jpg',
-      'http://192.168.0.147:8000/media/report/temp_FUz3JuX.jpeg',
-      '/src/assets/gloves1.jpg',
-      '/src/assets/helmet2.jpg',
-    ],
+      if (response.data && response.data.data) {
+        setSafetyItems(response.data.data.filter(item => item.is_active));
+      } else {
+        setError('No safety items found.');
+      }
+    } catch (err) {
+      setError('Failed to fetch safety items.');
+      console.error('Error fetching safety items:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+  useEffect(() => {
 
-  const handleItemChange = (event) => {
-    setSelectedItem(event.target.value);
+    fetchSafetyItems();
+  }, []);
+
+  // // Map safety items to hazard IDs for API
+  // const safetyItems = [
+  //   {
+  //     "id": 4,
+  //     "hazard_name": "safety eye glass",
+  //     "is_active": true
+  //   },
+  //   {
+  //     "id": 3,
+  //     "hazard_name": "safety jacket",
+  //     "is_active": true
+  //   },
+  //   {
+  //     "id": 2,
+  //     "hazard_name": "Safety helmet",
+  //     "is_active": true
+  //   },
+  //   {
+  //     "id": 1,
+  //     "hazard_name": "Safety gloves",
+  //     "is_active": true
+  //   }
+  // ];
+
+  const handleItemChange = async (event) => {
+    const selectedValue = event.target.value;
+    console.log(selectedValue)
+    setSelectedItem(selectedValue);
     setCurrentImageIndex(0);
     setPage(1);
+    setError(null);
+
+    if (selectedValue) {
+      const selectedHazard = safetyItems.find(item => item.id === selectedValue);
+      if (selectedHazard) {
+        fetchImages(selectedHazard.id);
+      }
+    } else {
+      setImages([]);
+    }
+  };
+
+  const fetchImages = async (hazardId) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No access token found. Please log in.');
+      }
+
+      const response = await axios.get(`http://142.93.214.65:8000/api/report/?hazard=${hazardId}`, {
+        headers: {
+          'accept': 'application/json'
+          // 'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (response.data && response.data.data) {
+        const fetchedImages = response.data.data.map(report => ({
+          image: report.image,
+          id: report.id,
+        }));
+        setImages(fetchedImages);
+      } else {
+        setImages([]);
+        setError('No images found for the selected hazard.');
+      }
+    } catch (err) {
+      setError('Failed to fetch images. Please try again.');
+      console.error('Fetch error:', err);
+      setImages([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleImageClick = (index) => {
@@ -69,9 +145,7 @@ const AIScreenView = () => {
     setPage(value);
   };
 
-  const paginatedImages = selectedItem && safetyImages[selectedItem]
-    ? safetyImages[selectedItem].slice((page - 1) * imagesPerPage, page * imagesPerPage)
-    : [];
+  const paginatedImages = images.slice((page - 1) * imagesPerPage, page * imagesPerPage);
 
   return (
     <Box sx={{ p: { xs: 2, sm: 4 } }}>
@@ -97,8 +171,8 @@ const AIScreenView = () => {
                 <em>Select a safety item</em>
               </MenuItem>
               {safetyItems.map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item}
+                <MenuItem key={item.id} value={item.id}>
+                  {item.hazard_name}
                 </MenuItem>
               ))}
             </Select>
@@ -107,7 +181,15 @@ const AIScreenView = () => {
       </Box>
 
       {/* Main Content */}
-      {selectedItem && safetyImages[selectedItem] && (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Typography color="error" align="center" sx={{ my: 4 }}>
+          {error}
+        </Typography>
+      ) : selectedItem && images.length > 0 ? (
         <Grid
           container
           spacing={2}
@@ -115,7 +197,7 @@ const AIScreenView = () => {
             flexDirection: 'row',
             display: 'flex',
             alignItems: 'flex-start',
-            justifyContent:"space-between"
+            justifyContent: 'space-between',
           }}
         >
           {/* Left: Carousel */}
@@ -131,11 +213,11 @@ const AIScreenView = () => {
                 showArrows
                 width="100%"
               >
-                {safetyImages[selectedItem].map((image, index) => (
-                  <div key={index}>
+                {images.map((item, index) => (
+                  <div key={item.id}>
                     <img
-                      src={image}
-                      alt={`${selectedItem} ${index + 1}`}
+                      src={item.image}
+                      alt={`Image ${index + 1}`}
                       style={{ height: '400px', width: '100%', borderRadius: '8px', objectFit: 'fill' }}
                     />
                     <Typography variant="caption" sx={{ mt: 1, textAlign: 'center' }}>
@@ -149,10 +231,10 @@ const AIScreenView = () => {
 
           {/* Right: Paginated Image Cards */}
           <Grid item xs={12} md={4} sx={{ maxWidth: '30%' }}>
-            <Box sx={{ background: '#fff', borderRadius: 2, boxShadow: 1, p: 2, minWidth:"360px",minHeight:"400px",maxHeight: '600px', overflowY: 'auto' }}>
+            <Box sx={{ background: '#fff', borderRadius: 2, boxShadow: 1, p: 2, minWidth: '360px', minHeight: '400px', maxHeight: '600px', overflowY: 'auto' }}>
               <Grid container spacing={2}>
-                {paginatedImages.map((image, index) => (
-                  <Grid item xs={6} key={index}>
+                {paginatedImages.map((item, index) => (
+                  <Grid item xs={6} key={item.id}>
                     <Card
                       sx={{
                         cursor: 'pointer',
@@ -164,9 +246,9 @@ const AIScreenView = () => {
                     >
                       <CardMedia
                         component="img"
-                        image={image}
-                        alt={`${selectedItem} ${index + 1}`}
-                        sx={{ height: '90px',width:"90px", objectFit: 'fill' }}
+                        image={item.image}
+                        alt={`Image ${index + 1}`}
+                        sx={{ height: '90px', width: '90px', objectFit: 'fill' }}
                       />
                       <CardContent sx={{ p: 1 }}>
                         <Typography variant="caption" color="text.secondary">
@@ -178,7 +260,7 @@ const AIScreenView = () => {
                 ))}
               </Grid>
               <Pagination
-                count={Math.ceil(safetyImages[selectedItem].length / imagesPerPage)}
+                count={Math.ceil(images.length / imagesPerPage)}
                 page={page}
                 onChange={handlePageChange}
                 sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
@@ -186,7 +268,11 @@ const AIScreenView = () => {
             </Box>
           </Grid>
         </Grid>
-      )}
+      ) : selectedItem ? (
+        <Typography align="center" sx={{ my: 4 }}>
+          No images available for the selected item.
+        </Typography>
+      ) : null}
     </Box>
   );
 };
