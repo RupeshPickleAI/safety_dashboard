@@ -21,6 +21,7 @@
     "date-fns": "^4.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^7.6.0",
     "recharts": "^2.15.3"
   },

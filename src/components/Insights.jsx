@@ -145,7 +145,7 @@ const Insights = () => {
 
           {/* Right side with filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {/* Facility Dropdown */}
+            {/* Facility Dropdown
             <FormControl size="small" className="w-full sm:w-[200px] bg-white rounded-md">
               <InputLabel>Facility</InputLabel>
               <Select
@@ -160,7 +160,7 @@ const Insights = () => {
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl>
+            </FormControl> */}
 
             {/* Date Picker */}
             <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -184,11 +184,32 @@ const Insights = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Compliance Card */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {/* Workskpace Compliance Card */}
+        <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-700">Workspace Compliance</h3>
+            <CheckCircleIcon className="text-green-200" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-3xl font-bold text-gray-800">{dashboardData.remaining}</h3>
+            <span className="text-gray-500">/ {dashboardData.total_people}</span>
+          </div>
+          <div className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-green-700 h-2 rounded-full" 
+                style={{ width: `${compliancePercentage}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">{compliancePercentage}% Compliant</p>
+          </div>
+        </div>
+
+         {/* Personal Compliance Card */}
         <div className="bg-gradient-to-br from-green-300 to-green-200 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-700">Compliance</h3>
+            <h3 className="text-lg font-semibold text-gray-700">Personal Compliance</h3>
             <CheckCircleIcon className="text-green-500" />
           </div>
           <div className="flex items-baseline gap-2">
