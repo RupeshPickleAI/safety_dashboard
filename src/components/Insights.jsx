@@ -64,7 +64,7 @@ const Insights = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://192.168.0.147:8000/api/dashboard/');
+      const response = await axios.get('https://ai-safety.indusvision.ai/api/dashboard/');
       console.log('Dashboard API Response:', response.data);
       setDashboardData(response.data);
       setError(null);

@@ -49,7 +49,7 @@ const AIScreenView = () => {
       '/src/assets/gloves1.jpg',
       '/src/assets/helmet1.jpg',
       '/src/assets/helmet2.jpg',
-      'http://192.168.0.147:8000/media/report/temp_FUz3JuX.jpeg',
+      'https://ai-safety.indusvision.ai/media/report/temp_FUz3JuX.jpeg',
       '/src/assets/gloves1.jpg',
       '/src/assets/helmet2.jpg',
     ],

@@ -61,31 +61,31 @@
 //     const fetchFilterOptions = async () => {
 //       try {
 //         // Fetch hazards
-//         const hazardsResponse = await axios.get('http://192.168.0.147:8000/api/hazard/');
+//         const hazardsResponse = await axios.get('https://ai-safety.indusvision.ai/api/hazard/');
 //         if (hazardsResponse.data && hazardsResponse.data.data) {
 //           setHazards(hazardsResponse.data.data);
 //         }
 
 //         // Fetch locations
-//         const locationsResponse = await axios.get('http://192.168.0.147:8000/api/location/');
+//         const locationsResponse = await axios.get('https://ai-safety.indusvision.ai/api/location/');
 //         if (locationsResponse.data && locationsResponse.data.data) {
 //           setLocations(locationsResponse.data.data);
 //         }
 
 //         // Fetch priorities
-//         const prioritiesResponse = await axios.get('http://192.168.0.147:8000/api/priority/');
+//         const prioritiesResponse = await axios.get('https://ai-safety.indusvision.ai/api/priority/');
 //         if (prioritiesResponse.data && prioritiesResponse.data.data) {
 //           setPriorities(prioritiesResponse.data.data);
 //         }
 
 //         // Fetch statuses
-//         const statusesResponse = await axios.get('http://192.168.0.147:8000/api/status/');
+//         const statusesResponse = await axios.get('https://ai-safety.indusvision.ai/api/status/');
 //         if (statusesResponse.data && statusesResponse.data.data) {
 //           setStatuses(statusesResponse.data.data);
 //         }
 
 //         // Fetch initial reports
-//         const reportsResponse = await axios.get('http://192.168.0.147:8000/api/report/');
+//         const reportsResponse = await axios.get('https://ai-safety.indusvision.ai/api/report/');
 //         if (reportsResponse.data && reportsResponse.data.data) {
 //           setReports(reportsResponse.data.data);
 //           setFilteredReports(reportsResponse.data.data.slice(0, itemsPerPage));
@@ -114,7 +114,7 @@
 
 //       console.log('Filter Parameters:', filterParams);
 
-//       const response = await axios.get('http://192.168.0.147:8000/api/report/', {
+//       const response = await axios.get('https://ai-safety.indusvision.ai/api/report/', {
 //         params: filterParams
 //       });
 
@@ -611,31 +611,31 @@ const dummyData = [
     const fetchFilterOptions = async () => {
       try {
         // Fetch hazards
-        const hazardsResponse = await axios.get('http://192.168.0.147:8000/api/hazard/');
+        const hazardsResponse = await axios.get('https://ai-safety.indusvision.ai/api/hazard/');
         if (hazardsResponse.data && hazardsResponse.data.data) {
           setHazards(hazardsResponse.data.data);
         }
 
         // Fetch locations
-        const locationsResponse = await axios.get('http://192.168.0.147:8000/api/location/');
+        const locationsResponse = await axios.get('https://ai-safety.indusvision.ai/api/location/');
         if (locationsResponse.data && locationsResponse.data.data) {
           setLocations(locationsResponse.data.data);
         }
 
         // Fetch priorities
-        const prioritiesResponse = await axios.get('http://192.168.0.147:8000/api/priority/');
+        const prioritiesResponse = await axios.get('https://ai-safety.indusvision.ai/api/priority/');
         if (prioritiesResponse.data && prioritiesResponse.data.data) {
           setPriorities(prioritiesResponse.data.data);
         }
 
         // Fetch statuses
-        const statusesResponse = await axios.get('http://192.168.0.147:8000/api/status/');
+        const statusesResponse = await axios.get('https://ai-safety.indusvision.ai/api/status/');
         if (statusesResponse.data && statusesResponse.data.data) {
           setStatuses(statusesResponse.data.data);
         }
 
         // Fetch initial reports
-        const reportsResponse = await axios.get('http://192.168.0.147:8000/api/report/');
+        const reportsResponse = await axios.get('https://ai-safety.indusvision.ai/api/report/');
         if (reportsResponse.data && reportsResponse.data.data) {
           setReports(reportsResponse.data.data);
           setFilteredReports(reportsResponse.data.data.slice(0, itemsPerPage));
@@ -662,7 +662,7 @@ const dummyData = [
         date: selectedDate ? selectedDate.toISOString().split('T')[0] : ''
       };
 
-      const response = await axios.get('http://192.168.0.147:8000/api/report/', {
+      const response = await axios.get('https://ai-safety.indusvision.ai/api/report/', {
         params: filterParams
       });
 
@@ -720,7 +720,7 @@ const dummyData = [
         throw new Error('Invalid status');
       }
 
-      const response = await axios.put(`http://192.168.0.147:8000/api/report/${id}/`, {
+      const response = await axios.put(`https://ai-safety.indusvision.ai/api/report/${id}/`, {
         status: statusId,
         status_name: newStatus,
         status_color: getStatusColor(newStatus)
