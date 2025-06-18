@@ -1,36 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Assessment as AssessmentIcon,
-  FilterList as FilterIcon,
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   CalendarMonth
 } from '@mui/icons-material';
 import {
-  TabContext,
-  TabList,
-  TabPanel
-} from '@mui/lab';
-import { 
-  Tab, 
-  Pagination, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Stack,
   FormControl,
-  Select,
   MenuItem,
-  InputLabel
+  InputLabel,
+  Select,
+  TextField
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { BarChart } from '@mui/x-charts/BarChart';
-import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 
 const Insights = () => {
@@ -47,50 +32,51 @@ const Insights = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedFacility, setSelectedFacility] = useState('');
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const facilities = [
-    'All Facilities',
-    'Facility 1',
-    'Facility 2',
-    'Facility 3'
-  ];
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [selectedFacility, selectedDate]);
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date());
 
   const fetchDashboardData = async () => {
+    if (fromDate > toDate) {
+      setError('From date cannot be greater than To date');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
     try {
-      setLoading(true);
-      const response = await axios.get('https://ai-safety.indusvision.ai/api/dashboard/');
-      console.log('Dashboard API Response:', response.data);
-      setDashboardData(response.data);
-      setError(null);
+      const formattedFromDate = fromDate.toISOString().split('T')[0];
+      const formattedToDate = toDate.toISOString().split('T')[0];
+
+      const response = await fetch(
+        `https://ai-safety.indusvision.ai/api/dashboard/?from_date=${formattedFromDate}&to_date=${formattedToDate}`
+      );
+      const data = await response.json();
+      setDashboardData(data);
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
       setError('Failed to fetch dashboard data');
+      console.error('Error fetching dashboard data:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fromDate, toDate]);
+
   // Process data for the chart
   const processChartData = () => {
     const dates = dashboardData.hazard_wise_counts_7_days.map(day => day.date);
     const hazardTypes = new Set();
-    
-    // Get all unique hazard types
+
     dashboardData.hazard_wise_counts_7_days.forEach(day => {
       Object.keys(day.hazards).forEach(hazard => {
         hazardTypes.add(hazard);
       });
     });
 
-    // Create series for each hazard type
     const series = Array.from(hazardTypes).map(hazardType => {
-      const data = dashboardData.hazard_wise_counts_7_days.map(day => 
+      const data = dashboardData.hazard_wise_counts_7_days.map(day =>
         day.hazards[hazardType] || 0
       );
       return {
@@ -106,74 +92,53 @@ const Insights = () => {
     };
   };
 
-  // Calculate compliance percentage
-  const compliancePercentage = dashboardData.total_people > 0 
-    ? Math.round((dashboardData.remaining / dashboardData.total_people) * 100) 
-    : 0;
-
-  // Format date safely
-  const formatDate = (dateString) => {
-    try {
-      if (!dateString) return 'N/A';
-      return format(parseISO(dateString), 'yyyy-MM-dd');
-    } catch (error) {
-      console.error('Date formatting error:', error);
-      return 'Invalid Date';
-    }
-  };
-
-  const handleFacilityChange = (event) => {
-    setSelectedFacility(event.target.value);
-  };
-
-  const handleDateChange = (newDate) => {
-    setSelectedDate(newDate);
-  };
-
   const chartData = processChartData();
+
+  const compliancePercentage =
+    dashboardData.total_people > 0
+      ? Math.round((dashboardData.remaining / dashboardData.total_people) * 100)
+      : 0;
 
   return (
     <div className="p-4 sm:p-6">
       {/* Header Card with Stats */}
       <div className="bg-gradient-to-br from-blue-300 to-blue-200 rounded-lg p-6 shadow-sm overflow-hidden mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Left side with title */}
           <div className="flex items-center gap-2">
             <AssessmentIcon className="text-blue-600" />
             <h1 className="text-xl font-semibold">Insights</h1>
           </div>
 
-          {/* Right side with filters */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {/* Facility Dropdown
-            <FormControl size="small" className="w-full sm:w-[200px] bg-white rounded-md">
-              <InputLabel>Facility</InputLabel>
-              <Select
-                value={selectedFacility}
-                label="Facility"
-                onChange={handleFacilityChange}
-                className="bg-white"
-              >
-                {facilities.map((facility) => (
-                  <MenuItem key={facility} value={facility}>
-                    {facility}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl> */}
-
-            {/* Date Picker */}
+          <div className="flex gap-4 flex-col sm:flex-row">
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="Select Date"
-                value={selectedDate}
-                onChange={handleDateChange}
+                label="From Date"
+                value={fromDate}
+                onChange={(newValue) => setFromDate(newValue)}
                 slotProps={{
                   textField: {
-                    size: "small",
-                    className: "w-full sm:w-[200px] bg-white rounded-md",
+                    size: 'small',
+                    className: 'w-full sm:w-[200px] bg-white rounded-md',
                     InputProps: {
-                      startAdornment: <CalendarMonth className="text-gray-400 mr-2" />,
+                      startAdornment: (
+                        <CalendarMonth className="text-gray-400 mr-2" />
+                      ),
+                    },
+                  },
+                }}
+              />
+              <DatePicker
+                label="To Date"
+                value={toDate}
+                onChange={(newValue) => setToDate(newValue)}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    className: 'w-full sm:w-[200px] bg-white rounded-md',
+                    InputProps: {
+                      startAdornment: (
+                        <CalendarMonth className="text-gray-400 mr-2" />
+                      ),
                     },
                   },
                 }}
@@ -185,7 +150,6 @@ const Insights = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {/* Workskpace Compliance Card */}
         <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-700">Workspace Compliance</h3>
@@ -197,8 +161,8 @@ const Insights = () => {
           </div>
           <div className="mt-2">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-green-700 h-2 rounded-full" 
+              <div
+                className="bg-green-700 h-2 rounded-full"
                 style={{ width: `${compliancePercentage}%` }}
               ></div>
             </div>
@@ -206,7 +170,6 @@ const Insights = () => {
           </div>
         </div>
 
-         {/* Personal Compliance Card */}
         <div className="bg-gradient-to-br from-green-300 to-green-200 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-700">Personal Compliance</h3>
@@ -218,8 +181,8 @@ const Insights = () => {
           </div>
           <div className="mt-2">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-green-700 h-2 rounded-full" 
+              <div
+                className="bg-green-700 h-2 rounded-full"
                 style={{ width: `${compliancePercentage}%` }}
               ></div>
             </div>
@@ -227,7 +190,6 @@ const Insights = () => {
           </div>
         </div>
 
-        {/* Active Hazards Card */}
         <div className="bg-gradient-to-br from-red-300 to-red-200 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-700">Active Hazards</h3>
@@ -237,28 +199,33 @@ const Insights = () => {
           <p className="text-sm text-gray-600 mt-2">Current active hazards</p>
         </div>
 
-        {/* Remaining Card */}
         <div className="bg-gradient-to-br from-orange-200 to-orange-200 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-700">Compliance Rate</h3>
             <ErrorIcon className="text-orange-500" />
           </div>
-          <h3 className="text-3xl font-bold text-gray-800">{dashboardData.remaining_percentage}</h3>
+          <h3 className="text-3xl font-bold text-gray-800">
+            {dashboardData.remaining_percentage}%
+          </h3>
           <p className="text-sm text-gray-600 mt-2">Above Target</p>
         </div>
       </div>
 
       {/* Stacked Chart */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Hazard Trends (Last 7 Days)</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-4">
+          Hazard Trends (Last 7 Days)
+        </h3>
         <div className="h-[400px]">
           <BarChart
             height={300}
             series={chartData.series}
-            xAxis={[{
-              data: chartData.dates,
-              scaleType: 'band',
-            }]}
+            xAxis={[
+              {
+                data: chartData.dates,
+                scaleType: 'band',
+              },
+            ]}
             margin={{
               top: 20,
               right: 30,
@@ -276,13 +243,9 @@ const Insights = () => {
         </div>
       )}
 
-      {error && (
-        <div className="text-center py-4 text-red-500">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-center py-4 text-red-500">{error}</div>}
     </div>
   );
 };
 
-export default Insights; 
+export default Insights;

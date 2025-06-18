@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Insights from './components/Insights';
@@ -10,22 +10,28 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 
 const App = () => {
-  // Check if user is authenticated (you can implement your own auth logic)
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Protected Route wrapper
+  useEffect(() => {
+    const auth = localStorage.getItem('isAuthenticated') === 'true';
+    setIsAuthenticated(auth);
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
   const ProtectedRoute = ({ children }) => {
     if (!isAuthenticated) {
       return <Navigate to="/login" replace />;
     }
+
     return (
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
         <div className="flex-1 lg:ml-64 flex flex-col">
           <Header />
-          <main className="p-4 lg:p-6 flex-1 overflow-y-auto">
-            {children}
-          </main>
+          <main className="p-4 lg:p-6 flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>
     );
@@ -35,50 +41,15 @@ const App = () => {
     <Router>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login onLogin={handleLoginSuccess} />} />
         <Route path="/signup" element={<Signup />} />
 
         {/* Protected routes */}
-        <Route
-          path="/insights"
-          element={
-            <ProtectedRoute>
-              <Insights />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute>
-              <Reports />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/ai-screen-view"
-          element={
-            <ProtectedRoute>
-              <AIScreenView />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Insights />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+        <Route path="/ai-screen-view" element={<ProtectedRoute><AIScreenView /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
