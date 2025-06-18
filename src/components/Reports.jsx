@@ -292,6 +292,14 @@ const dummyData = [
   };
 
 
+const handleSelectChange = (e) =>{
+   console.log(e.target.value)
+   setSelectedHazard(e.target.value)
+}
+
+console.log(locations, priorities, statuses, "filter values")
+
+
   return (
     <div className="p-4 sm:p-6">
       {/* Header Card */}
@@ -331,22 +339,15 @@ const dummyData = [
             <FormControl fullWidth size="small">
               <InputLabel>Hazard Type</InputLabel>
               <Select
-                value={selectedHazard?.hazard_name || ''}
+                value={selectedHazard}
                 label="Hazard Type"
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  const selectedHazardObj = hazards.find(h => String(h.hazard_name) === String(selectedValue));
-                  setSelectedHazard({
-                    id: selectedHazardObj?.hazard || '',
-                    name: selectedHazardObj?.hazard_name || ''
-                  });
-                }}
+                onChange={handleSelectChange}
               >
                 <MenuItem value="">
                   <em>None</em>
                 </MenuItem>
                 {hazards.map((hazard) => (
-                  <MenuItem key={hazard.hazard} value={hazard.hazard_name}>
+                  <MenuItem key={hazard.id} value={hazard.id}>
                     {hazard.hazard_name}
                   </MenuItem>
                 ))}
@@ -363,7 +364,7 @@ const dummyData = [
                   <em>None</em>
                 </MenuItem>
                 {locations.map((location) => (
-                  <MenuItem key={location.location} value={location.location}>
+                  <MenuItem key={location.id} value={location.id}>
                     {location.location_name}
                   </MenuItem>
                 ))}
@@ -380,7 +381,7 @@ const dummyData = [
                   <em>None</em>
                 </MenuItem>
                 {priorities.map((priority) => (
-                  <MenuItem key={priority.priority} value={priority.priority}>
+                  <MenuItem key={priority.id} value={priority.id}>
                     {priority.priority_name}
                   </MenuItem>
                 ))}
@@ -397,7 +398,7 @@ const dummyData = [
                   <em>None</em>
                 </MenuItem>
                 {statuses.map((status) => (
-                  <MenuItem key={status.status} value={status.status}>
+                  <MenuItem key={status.id} value={status.id}>
                     {status.status_name}
                   </MenuItem>
                 ))}
