@@ -28,7 +28,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
 }));
 
-const Login = ({onLogin})=> {
+const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -108,11 +108,26 @@ const Login = ({onLogin})=> {
         sx={{ flex: 1, display: 'flex', alignItems: 'center' }}
       >
         <StyledPaper elevation={6}>
-          <img
-            src="https://eimkeia.stripocdn.email/content/guids/CABINET_8270216c780e362a1fbcd636b59c67ae376eb446dc5f95e17700b638b8c3f618/images/indus_logo_dev.png"
-            alt="Logo"
-            style={{ width: '200px', marginBottom: '2rem' }}
-          />
+          <Box
+            sx={{
+              backgroundColor: '#1a237e', // Blue background
+              padding: 2,
+              borderRadius: 2,
+              marginBottom: 3,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            <img
+              src="https://eimkeia.stripocdn.email/content/guids/CABINET_8270216c780e362a1fbcd636b59c67ae376eb446dc5f95e17700b638b8c3f618/images/indus_logo_dev.png"
+              alt="Logo"
+              style={{ width: '200px' }}
+            />
+          </Box>
+
           <Typography component="h1" variant="h5" sx={{ mb: 3, color: '#1a237e' }}>
             Welcome Back
           </Typography>

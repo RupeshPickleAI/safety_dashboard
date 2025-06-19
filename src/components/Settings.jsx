@@ -48,6 +48,7 @@ const Settings = () => {
   const [plantData, setPlantData] = useState([]);
   const [priorityData, setPriorityData] = useState([]);
   const [statusData, setStatusData] = useState([]);
+  const [cameraData, setCameraData] = useState([]);
   // const [peopleCountData, setPeopleCountData] = useState([]);
 
   // Form states
@@ -57,6 +58,7 @@ const Settings = () => {
     plant_name: '',
     priority_name: '',
     status_name: '',
+    camera_name: '',
     color_code: '#000000',
     is_active: true
   });
@@ -87,6 +89,10 @@ const Settings = () => {
           const statusResponse = await axios.get('https://ai-safety.indusvision.ai/api/status/');
           setStatusData(statusResponse.data.data);
           break;
+        case 'camera':
+          const cameraResponse = await axios.get('https://ai-safety.indusvision.ai/api/camera/');
+          setCameraData(cameraResponse.data.data);
+          break;
         case 'total-people-count':
           const peopleCountResponse = await axios.get('https://ai-safety.indusvision.ai/api/total_people_count/');
           setPeopleCountData(peopleCountResponse.data.data);
@@ -112,6 +118,7 @@ const Settings = () => {
       plant_name: '',
       priority_name: '',
       status_name: '',
+      camera_name: '',
       color_code: '#000000',
       is_active: true
     });
@@ -129,6 +136,7 @@ const Settings = () => {
       plant_name: '',
       priority_name: '',
       status_name: '',
+      camera_name: '',
       color_code: '#000000',
       is_active: true
     });
@@ -176,6 +184,10 @@ const Settings = () => {
             is_active: newItem.is_active
           };
           break;
+        case 'camera':
+          endpoint = 'https://ai-safety.indusvision.ai/api/camera/';
+          payload = { camera_name: newItem.camera_name, is_active: newItem.is_active };
+          break;
       }
 
       await axios.post(endpoint, payload);
@@ -207,6 +219,9 @@ const Settings = () => {
         case 'status':
           endpoint = `https://ai-safety.indusvision.ai/api/status/${id}/`;
           break;
+        case 'camera':
+          endpoint = `https://ai-safety.indusvision.ai/api/camera/${id}/`;
+          break;
       }
 
       await axios.delete(endpoint);
@@ -236,6 +251,9 @@ const Settings = () => {
           break;
         case 'status':
           endpoint = `https://ai-safety.indusvision.ai/api/status/${id}/`;
+          break;
+        case 'camera':
+          endpoint = `https://ai-safety.indusvision.ai/api/camera/${id}/`;
           break;
       }
 
@@ -289,6 +307,10 @@ const Settings = () => {
         data = statusData;
         columns = ['ID', 'Status Name', 'Color', 'Status', 'Actions'];
         break;
+      case 'camera':
+        data = cameraData;
+        columns = ['ID', 'Camera Name', 'Status', 'Actions'];
+        break;
       case 'total-people-count':
         data = peopleCountData;
         columns = ['ID', 'Department', 'Count', 'Actions'];
@@ -320,7 +342,7 @@ const Settings = () => {
                 <TableCell className="py-3">{item.id}</TableCell>
                 <TableCell className="py-3">
                   {item.hazard_name || item.location_name || item.plant_name || 
-                   item.priority_name || item.status_name || item.department}
+                   item.priority_name || item.status_name || item.camera_name || item.department}
                 </TableCell>
                 {(value === 'priority' || value === 'status') && (
                   <TableCell className="py-3">
@@ -380,53 +402,130 @@ const Settings = () => {
       plant: 'Add New Plant',
       priority: 'Add New Priority',
       status: 'Add New Status',
+      camera: 'Add New Camera',
       'total-people-count': 'Add New Department'
     };
     return titles[value];
   };
 
   const renderDialogContent = () => {
-    const commonFields = (
-      <>
-        <TextField
-          fullWidth
-          label={`${value.charAt(0).toUpperCase() + value.slice(1)} Name`}
-          name={`${value}_name`}
-          value={newItem[`${value}_name`]}
-          onChange={handleInputChange}
-          variant="outlined"
-          size="small"
-          className="mb-4"
-        />
-        {(value === 'priority' || value === 'status') && (
+    switch (value) {
+      case 'hazard':
+        return (
           <TextField
+            autoFocus
+            margin="dense"
+            name="hazard_name"
+            label="Hazard Name"
+            type="text"
             fullWidth
-            label="Color"
-            name="color_code"
-            type="color"
-            value={newItem.color_code}
+            value={newItem.hazard_name}
             onChange={handleInputChange}
-            variant="outlined"
-            size="small"
-            className="mb-4"
           />
-        )}
-        {value !== 'total-people-count' && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Status:</span>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              newItem.is_active 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {newItem.is_active ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-        )}
-      </>
-    );
-
-    return <div className="space-y-4 pt-4">{commonFields}</div>;
+        );
+      case 'location':
+        return (
+          <TextField
+            autoFocus
+            margin="dense"
+            name="location_name"
+            label="Location Name"
+            type="text"
+            fullWidth
+            value={newItem.location_name}
+            onChange={handleInputChange}
+          />
+        );
+      case 'plant':
+        return (
+          <TextField
+            autoFocus
+            margin="dense"
+            name="plant_name"
+            label="Plant Name"
+            type="text"
+            fullWidth
+            value={newItem.plant_name}
+            onChange={handleInputChange}
+          />
+        );
+      case 'priority':
+        return (
+          <>
+            <TextField
+              autoFocus
+              margin="dense"
+              name="priority_name"
+              label="Priority Name"
+              type="text"
+              fullWidth
+              value={newItem.priority_name}
+              onChange={handleInputChange}
+            />
+            <TextField
+              margin="dense"
+              name="color_code"
+              label="Color Code"
+              type="color"
+              fullWidth
+              value={newItem.color_code}
+              onChange={handleInputChange}
+            />
+          </>
+        );
+      case 'status':
+        return (
+          <>
+            <TextField
+              autoFocus
+              margin="dense"
+              name="status_name"
+              label="Status Name"
+              type="text"
+              fullWidth
+              value={newItem.status_name}
+              onChange={handleInputChange}
+            />
+            <TextField
+              margin="dense"
+              name="color_code"
+              label="Color Code"
+              type="color"
+              fullWidth
+              value={newItem.color_code}
+              onChange={handleInputChange}
+            />
+          </>
+        );
+      case 'camera':
+        return (
+          <TextField
+            autoFocus
+            margin="dense"
+            name="camera_name"
+            label="Camera Name"
+            type="text"
+            fullWidth
+            value={newItem.camera_name}
+            onChange={handleInputChange}
+          />
+        );
+      case 'total-people-count':
+        return (
+          <TextField
+            autoFocus
+            margin="dense"
+            name="department"
+            label="Department"
+            type="text"
+            fullWidth
+            value={newItem.department}
+            onChange={handleInputChange}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -496,6 +595,7 @@ const Settings = () => {
               <Tab value="priority" label="Priority" />
               <Tab value="plant" label="Plant" />
               <Tab value="status" label="Status" />
+              <Tab value="camera" label="Camera" />
               {/* <Tab value="total-people-count" label="Total People Count" /> */}
             </Tabs>
           </div>
